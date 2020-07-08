@@ -1,0 +1,282 @@
+---
+title: "Land Bank Activity Charts"
+categories: ["R"]
+tags: ["R Markdown", "plot", "regression"]
+date: 3/1/2019
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+  
+```{r include = FALSE}
+
+pkgTest <- function(x) {
+  if (!require(x, character.only = TRUE))
+  {
+    install.packages(x, dep = TRUE)
+    if(!require(x, character.only = TRUE)) stop("Package not found")
+  }
+}
+
+packages <- c("plm", 
+              "tidycensus", 
+              "tidyverse", 
+              "readr", 
+              "stargazer", 
+              "oddsratio", 
+              "lubridate", 
+              "lme4", 
+              "extrafont", 
+              "scales", 
+              "gganimate", 
+              "png")
+lapply(packages, pkgTest)
+
+
+
+loadfonts(device = "win")
+```
+
+This is a simple example of how I created summary graphs of demolition activity in Cleveland. 
+
+First, prepare the data. 
+
+```{r, results = 'hide', message = FALSE, warning =  FALSE}
+marker <- read.csv("//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/2018-cleveland-re-survey.csv") %>% 
+  mutate(pid = as.character(Parcel.ID), 
+         marker = as.factor("Yes")) %>% 
+  select(pid, marker)
+
+cleveland.lb <- read.csv("//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/city demos.csv") %>% 
+  bind_rows(read.csv("//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/land bank demos.csv")) %>% 
+            mutate(pid = gsub("-", "", Parcel.Number)) %>% 
+  left_join(marker, by = "pid") %>% 
+  mutate(cclb.demo = ymd(Cuyahoga.Land.Bank.Demo.Date), 
+         cclb.demo.year = year(cclb.demo),
+         city.demo = ymd(City.Demo.Date), 
+         city.demo.year = year(city.demo), 
+         demo.year = if_else(!is.na(cclb.demo.year), cclb.demo.year,
+                             if_else(!is.na(city.demo.year), city.demo.year, NA_real_)),
+         demo.by = as.factor(if_else(!is.na(cclb.demo.year), "County Land Bank",
+                             if_else(!is.na(city.demo.year), "City", NA_character_))))
+
+graph <- cleveland.lb %>% 
+  filter(!is.na(demo.year), !is.na(marker), demo.year > 2001) %>% 
+  group_by(demo.year, demo.by) %>% 
+  summarise( n = n()) %>% 
+  mutate(series = "all") %>% 
+  select(demo.year, demo.by, series, n) %>% 
+  bind_rows((cleveland.lb %>% 
+      filter(!is.na(demo.year), is.na(marker)) %>% 
+      group_by(demo.year, demo.by) %>% 
+      summarise( n = n()) %>% 
+      mutate(series = "east")) %>% 
+        select(demo.year, series, demo.by, n)) %>% 
+  mutate(demos.location = str_c(series, ", ", demo.by)) %>% 
+  group_by(series, demo.by) %>% 
+  mutate(total_demos = cumsum(n))
+
+all.graph <- graph %>%
+  filter(series == "all")
+
+east.graph <- graph %>%
+  filter(series == "east")
+
+
+```
+
+
+```{r}
+
+all.annual <- all.graph %>% 
+  ggplot(aes(x = demo.year, y = n, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = "Year", 
+       y = "Annual Demos", 
+       linetype = "") +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 100)) + 
+  theme_bw() +
+  theme(legend.position = '', 
+        text = element_text(family = "serif")) 
+  
+
+all.cumulative <- all.graph %>% 
+  ggplot(aes(x = demo.year, y = total_demos, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = "", 
+       y = "Cumulative Demos \n(Since 2004)", 
+       linetype = "", 
+        title = "All Cleveland Neighborhoods") +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 5000), breaks = seq(0, 5000, by = 500)) + 
+  geom_text(aes(x = 2010, y = 3500, label = "City", family = "serif")) +
+  geom_text(aes(x = 2016.5, y = 1500, label = "Land Bank", family = "serif")) +
+  theme_bw() +
+  theme(legend.position = '', 
+        text = element_text(family = "serif")) 
+
+east.annual <- east.graph %>% 
+  ggplot(aes(x = demo.year, y = n, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = "Year", 
+       y = "", 
+       linetype = "") +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 100)) + 
+  theme_bw() +
+  theme(legend.position = "", 
+        text = element_text(family = "serif"))
+
+east.cumulative <- east.graph %>% 
+  ggplot(aes(x = demo.year, y = total_demos, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = "", 
+       y = "", 
+       linetype = "", 
+        title = "Resurveyed Neighborhoods") +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(limits = c(0, 5000), breaks = seq(0, 5000, by = 500)) + 
+  theme_bw() +
+  theme(legend.position = '', 
+        text = element_text(family = "serif"))
+
+# jpeg(file="plots/demo activity.jpeg", width = 11, height = 8.5, units = 'in', res = 850)
+cowplot::plot_grid(all.cumulative, east.cumulative, all.annual, east.annual, 
+                   nrow = 2, 
+                   ncol = 2,
+                   rel_heights = c(.6, .4), 
+                   align = "v")
+# dev.off()
+```
+
+
+```{r}
+
+```
+
+
+
+To create the cumulative chart, I had to use the mutate, cumsum command.
+
+
+```{r}
+by.hood <- cleveland.lb %>% 
+  mutate(hood = Neighborhood..imp..2012.) %>%
+  filter(!is.na(demo.year), demo.year > 2001, 
+         (hood == "Glenville" |
+          hood == "Broadway-Slavic Village" |
+          hood == "Union-Miles" |
+          hood == "Mount Pleasant" |
+          hood == "Hough" |
+          hood == "Kinsman" |
+          hood == "St.Clair-Superior" |
+          hood == "Fairfax" |
+          hood == "Collinwood-Nottingham" |
+          hood == "Buckeye-Shaker Square" |
+          hood == "Buckeye-Woodhill" |
+          hood == "Stockyards" |
+          hood == "Clark-Fulton")) %>% 
+  group_by(demo.year, hood) %>% 
+  summarise(n = n()) %>% 
+  select(demo.year, hood, n) %>% 
+  group_by(hood) %>% 
+  mutate(total = cumsum(n))
+```
+
+
+
+Now I can start creating the charts. 
+
+This creates the cumulative demolitions by neighbrohoods gifs. 
+```{r}
+by.hood %>% 
+  ggplot(aes(demo.year, total, group = hood)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = total), linetype = 2, colour = 'grey') + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = hood), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = 'off') + 
+  labs(title = "Total Number of Demolitions in Select \nCleveland Neighborhoods: 2004-2018",
+       y = "Total Demolitions",
+       x = "Year") + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 2400, by = 200)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 120, 5.5, 5.5), 
+        legend.position = "none")
+
+# anim_save("gifs/cumulative demos by hood.gif")
+```
+
+This version is the same as above, but uses demolitions per year as opposed to total, cumulative demos. 
+```{r}
+by.hood %>% 
+  ggplot(aes(demo.year, n, group = hood)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 2, colour = 'grey') + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = hood), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = 'off') + 
+  labs(title = "Demolition Activity in Select \nCleveland Neighborhoods: 2004-2018",
+       y = "Number of Demolitions",
+       x = "Year") + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 400, by = 25)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 120, 5.5, 5.5), 
+        legend.position = "none")
+
+```
+
+This creates an animated version of the demolition activity per year in all of Cleveland.  
+```{r}
+all.graph %>% 
+  ggplot(aes(demo.year, n, group = demos.location, linetype = demos.location)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 3, colour = 'grey') + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = demo.by), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = 'off') + 
+  labs(title = "Demolition Activity in Cleveland, OH: 2004-2018",
+       y = "Number of Demolitions",
+       x = "Year") + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 950, by = 50)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 80, 5.5, 5.5), 
+        legend.position = "none")
+
+#  anim_save("gifs/all demos.gif")
+```
+
+And this one creates the animated graph for just the eastside. 
+```{r}
+east.graph %>% 
+  ggplot(aes(demo.year, n, group = demos.location, linetype = demos.location)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 2, colour = 'grey') + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = demo.by), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = 'off') + 
+  labs(title = "Demolition Activity in Select \nEastside Cleveland Neighborhoods: 2004-2018",
+       y = "Number of Demolitions",
+       x = "Year") + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 500, by = 50)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 80, 5.5, 5.5), 
+        legend.position = "none")
+
+#  anim_save("gifs/east demos.gif")
+```
+
+
+
+
+

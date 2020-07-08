@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Publications on Daniel Kuhlmann, PhD</title>
+    <link>/publication/</link>
+    <description>Recent content in Publications on Daniel Kuhlmann, PhD</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 07 Aug 2020 00:00:00 +0000</lastBuildDate>
+    
+	    <atom:link href="/publication/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Working Paper -- Upzoning and Single-Family Housing Prices: A (very) early analysis of the Minneapolis 2040Plan.</title>
+      <link>/publication/preprint-2040/</link>
+      <pubDate>Fri, 07 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/publication/preprint-2040/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Coveting your neighbour’s house: understanding the positional nature of residential satisfaction</title>
+      <link>/publication/journal-article-satisfaction/</link>
+      <pubDate>Thu, 01 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/publication/journal-article-satisfaction/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Working Paper -- Building up After Tearing Down: The Impact of Demolitions on Residential Investment</title>
+      <link>/publication/preprint-land-bank/</link>
+      <pubDate>Sun, 07 Apr 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/publication/preprint-land-bank/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>The Social and Fiscal Consequences of Urban Decline: Evidence from Large American Cities, 1980–2010</title>
+      <link>/publication/journal-article-shriking/</link>
+      <pubDate>Fri, 01 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/publication/journal-article-shriking/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>plot on Daniel Kuhlmann, PhD</title>
+    <link>/tags/plot/</link>
+    <description>Recent content in plot on Daniel Kuhlmann, PhD</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    
+	    <atom:link href="/tags/plot/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Land Bank Activity Charts</title>
+      <link>/post/cleveland_land_bank_activity/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/post/cleveland_land_bank_activity/</guid>
+      <description>
+
+
+&lt;p&gt;This is a simple example of how I created summary graphs of demolition activity in Cleveland.&lt;/p&gt;
+&lt;p&gt;First, prepare the data.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;marker &amp;lt;- read.csv(&amp;quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/2018-cleveland-re-survey.csv&amp;quot;) %&amp;gt;% 
+  mutate(pid = as.character(Parcel.ID), 
+         marker = as.factor(&amp;quot;Yes&amp;quot;)) %&amp;gt;% 
+  select(pid, marker)
+
+cleveland.lb &amp;lt;- read.csv(&amp;quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/city demos.csv&amp;quot;) %&amp;gt;% 
+  bind_rows(read.csv(&amp;quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/land bank demos.csv&amp;quot;)) %&amp;gt;% 
+            mutate(pid = gsub(&amp;quot;-&amp;quot;, &amp;quot;&amp;quot;, Parcel.Number)) %&amp;gt;% 
+  left_join(marker, by = &amp;quot;pid&amp;quot;) %&amp;gt;% 
+  mutate(cclb.demo = ymd(Cuyahoga.Land.Bank.Demo.Date), 
+         cclb.demo.year = year(cclb.demo),
+         city.demo = ymd(City.Demo.Date), 
+         city.demo.year = year(city.demo), 
+         demo.year = if_else(!is.na(cclb.demo.year), cclb.demo.year,
+                             if_else(!is.na(city.demo.year), city.demo.year, NA_real_)),
+         demo.by = as.factor(if_else(!is.na(cclb.demo.year), &amp;quot;County Land Bank&amp;quot;,
+                             if_else(!is.na(city.demo.year), &amp;quot;City&amp;quot;, NA_character_))))
+
+graph &amp;lt;- cleveland.lb %&amp;gt;% 
+  filter(!is.na(demo.year), !is.na(marker), demo.year &amp;gt; 2001) %&amp;gt;% 
+  group_by(demo.year, demo.by) %&amp;gt;% 
+  summarise( n = n()) %&amp;gt;% 
+  mutate(series = &amp;quot;all&amp;quot;) %&amp;gt;% 
+  select(demo.year, demo.by, series, n) %&amp;gt;% 
+  bind_rows((cleveland.lb %&amp;gt;% 
+      filter(!is.na(demo.year), is.na(marker)) %&amp;gt;% 
+      group_by(demo.year, demo.by) %&amp;gt;% 
+      summarise( n = n()) %&amp;gt;% 
+      mutate(series = &amp;quot;east&amp;quot;)) %&amp;gt;% 
+        select(demo.year, series, demo.by, n)) %&amp;gt;% 
+  mutate(demos.location = str_c(series, &amp;quot;, &amp;quot;, demo.by)) %&amp;gt;% 
+  group_by(series, demo.by) %&amp;gt;% 
+  mutate(total_demos = cumsum(n))
+
+all.graph &amp;lt;- graph %&amp;gt;%
+  filter(series == &amp;quot;all&amp;quot;)
+
+east.graph &amp;lt;- graph %&amp;gt;%
+  filter(series == &amp;quot;east&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;all.annual &amp;lt;- all.graph %&amp;gt;% 
+  ggplot(aes(x = demo.year, y = n, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &amp;quot;Year&amp;quot;, 
+       y = &amp;quot;Annual Demos&amp;quot;, 
+       linetype = &amp;quot;&amp;quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 100)) + 
+  theme_bw() +
+  theme(legend.position = &amp;#39;&amp;#39;, 
+        text = element_text(family = &amp;quot;serif&amp;quot;)) 
+  
+
+all.cumulative &amp;lt;- all.graph %&amp;gt;% 
+  ggplot(aes(x = demo.year, y = total_demos, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &amp;quot;&amp;quot;, 
+       y = &amp;quot;Cumulative Demos \n(Since 2004)&amp;quot;, 
+       linetype = &amp;quot;&amp;quot;, 
+        title = &amp;quot;All Cleveland Neighborhoods&amp;quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 5000), breaks = seq(0, 5000, by = 500)) + 
+  geom_text(aes(x = 2010, y = 3500, label = &amp;quot;City&amp;quot;, family = &amp;quot;serif&amp;quot;)) +
+  geom_text(aes(x = 2016.5, y = 1500, label = &amp;quot;Land Bank&amp;quot;, family = &amp;quot;serif&amp;quot;)) +
+  theme_bw() +
+  theme(legend.position = &amp;#39;&amp;#39;, 
+        text = element_text(family = &amp;quot;serif&amp;quot;)) 
+
+east.annual &amp;lt;- east.graph %&amp;gt;% 
+  ggplot(aes(x = demo.year, y = n, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &amp;quot;Year&amp;quot;, 
+       y = &amp;quot;&amp;quot;, 
+       linetype = &amp;quot;&amp;quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 100)) + 
+  theme_bw() +
+  theme(legend.position = &amp;quot;&amp;quot;, 
+        text = element_text(family = &amp;quot;serif&amp;quot;))
+
+east.cumulative &amp;lt;- east.graph %&amp;gt;% 
+  ggplot(aes(x = demo.year, y = total_demos, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &amp;quot;&amp;quot;, 
+       y = &amp;quot;&amp;quot;, 
+       linetype = &amp;quot;&amp;quot;, 
+        title = &amp;quot;Resurveyed Neighborhoods&amp;quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(limits = c(0, 5000), breaks = seq(0, 5000, by = 500)) + 
+  theme_bw() +
+  theme(legend.position = &amp;#39;&amp;#39;, 
+        text = element_text(family = &amp;quot;serif&amp;quot;))
+
+# jpeg(file=&amp;quot;plots/demo activity.jpeg&amp;quot;, width = 11, height = 8.5, units = &amp;#39;in&amp;#39;, res = 850)
+cowplot::plot_grid(all.cumulative, east.cumulative, all.annual, east.annual, 
+                   nrow = 2, 
+                   ncol = 2,
+                   rel_heights = c(.6, .4), 
+                   align = &amp;quot;v&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# dev.off()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To create the cumulative chart, I had to use the mutate, cumsum command.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;by.hood &amp;lt;- cleveland.lb %&amp;gt;% 
+  mutate(hood = Neighborhood..imp..2012.) %&amp;gt;%
+  filter(!is.na(demo.year), demo.year &amp;gt; 2001, 
+         (hood == &amp;quot;Glenville&amp;quot; |
+          hood == &amp;quot;Broadway-Slavic Village&amp;quot; |
+          hood == &amp;quot;Union-Miles&amp;quot; |
+          hood == &amp;quot;Mount Pleasant&amp;quot; |
+          hood == &amp;quot;Hough&amp;quot; |
+          hood == &amp;quot;Kinsman&amp;quot; |
+          hood == &amp;quot;St.Clair-Superior&amp;quot; |
+          hood == &amp;quot;Fairfax&amp;quot; |
+          hood == &amp;quot;Collinwood-Nottingham&amp;quot; |
+          hood == &amp;quot;Buckeye-Shaker Square&amp;quot; |
+          hood == &amp;quot;Buckeye-Woodhill&amp;quot; |
+          hood == &amp;quot;Stockyards&amp;quot; |
+          hood == &amp;quot;Clark-Fulton&amp;quot;)) %&amp;gt;% 
+  group_by(demo.year, hood) %&amp;gt;% 
+  summarise(n = n()) %&amp;gt;% 
+  select(demo.year, hood, n) %&amp;gt;% 
+  group_by(hood) %&amp;gt;% 
+  mutate(total = cumsum(n))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now I can start creating the charts.&lt;/p&gt;
+&lt;p&gt;This creates the cumulative demolitions by neighbrohoods gifs.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;by.hood %&amp;gt;% 
+  ggplot(aes(demo.year, total, group = hood)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = total), linetype = 2, colour = &amp;#39;grey&amp;#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = hood), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &amp;#39;off&amp;#39;) + 
+  labs(title = &amp;quot;Total Number of Demolitions in Select \nCleveland Neighborhoods: 2004-2018&amp;quot;,
+       y = &amp;quot;Total Demolitions&amp;quot;,
+       x = &amp;quot;Year&amp;quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 2400, by = 200)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 120, 5.5, 5.5), 
+        legend.position = &amp;quot;none&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-6-1.gif&#34; /&gt;&lt;!-- --&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# anim_save(&amp;quot;gifs/cumulative demos by hood.gif&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This version is the same as above, but uses demolitions per year as opposed to total, cumulative demos.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;by.hood %&amp;gt;% 
+  ggplot(aes(demo.year, n, group = hood)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 2, colour = &amp;#39;grey&amp;#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = hood), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &amp;#39;off&amp;#39;) + 
+  labs(title = &amp;quot;Demolition Activity in Select \nCleveland Neighborhoods: 2004-2018&amp;quot;,
+       y = &amp;quot;Number of Demolitions&amp;quot;,
+       x = &amp;quot;Year&amp;quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 400, by = 25)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 120, 5.5, 5.5), 
+        legend.position = &amp;quot;none&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-7-1.gif&#34; /&gt;&lt;!-- --&gt;&lt;/p&gt;
+&lt;p&gt;This creates an animated version of the demolition activity per year in all of Cleveland.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;all.graph %&amp;gt;% 
+  ggplot(aes(demo.year, n, group = demos.location, linetype = demos.location)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 3, colour = &amp;#39;grey&amp;#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = demo.by), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &amp;#39;off&amp;#39;) + 
+  labs(title = &amp;quot;Demolition Activity in Cleveland, OH: 2004-2018&amp;quot;,
+       y = &amp;quot;Number of Demolitions&amp;quot;,
+       x = &amp;quot;Year&amp;quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 950, by = 50)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 80, 5.5, 5.5), 
+        legend.position = &amp;quot;none&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-8-1.gif&#34; /&gt;&lt;!-- --&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#  anim_save(&amp;quot;gifs/all demos.gif&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And this one creates the animated graph for just the eastside.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;east.graph %&amp;gt;% 
+  ggplot(aes(demo.year, n, group = demos.location, linetype = demos.location)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 2, colour = &amp;#39;grey&amp;#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = demo.by), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &amp;#39;off&amp;#39;) + 
+  labs(title = &amp;quot;Demolition Activity in Select \nEastside Cleveland Neighborhoods: 2004-2018&amp;quot;,
+       y = &amp;quot;Number of Demolitions&amp;quot;,
+       x = &amp;quot;Year&amp;quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 500, by = 50)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 80, 5.5, 5.5), 
+        legend.position = &amp;quot;none&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-9-1.gif&#34; /&gt;&lt;!-- --&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#  anim_save(&amp;quot;gifs/east demos.gif&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,7 @@
+"0","marker <- read.csv(""//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Clevelanddata/raw data/2018-cleveland-re-survey.csv"") %>% 
+  mutate(pid = as.character(Parcel.ID), 
+         marker = as.factor(""Yes"")) %>% 
+  select(pid, marker)
+"
+"2","Error in file(file, ""rt"") : cannot open the connection
+"

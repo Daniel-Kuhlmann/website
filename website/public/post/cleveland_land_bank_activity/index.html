@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academic 4.3.1">
+
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Daniel Kuhlmann">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="This is a simple example of how I created summary graphs of demolition activity in Cleveland.
+First, prepare the data.
+marker &lt;- read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/2018-cleveland-re-survey.csv&quot;) %&gt;% mutate(pid = as.character(Parcel.ID), marker = as.factor(&quot;Yes&quot;)) %&gt;% select(pid, marker)cleveland.lb &lt;- read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/city demos.csv&quot;) %&gt;% bind_rows(read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/land bank demos.csv&quot;)) %&gt;% mutate(pid = gsub(&quot;-&quot;, &quot;&quot;, Parcel.Number)) %&gt;% left_join(marker, by = &quot;pid&quot;) %&gt;% mutate(cclb.demo = ymd(Cuyahoga.Land.Bank.Demo.Date), cclb.demo.year = year(cclb.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="/post/cleveland_land_bank_activity/">
+
+  
+
+
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#2962ff">
+  
+
+  
+  
+  
+  
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" integrity="sha384-aOkxzJ5uQz7WBObEZcHvV5JvRW3TUc2rNPA7pe3AwnsUohiw1Vj2Rgx2KSOkF5+h" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+
+    
+
+  
+
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700|Roboto:400,400italic,700|Roboto+Mono">
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/academic.min.747d92dc45be93ba6055a623fe5bcc0a.css">
+
+  
+
+  
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-142173360-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+  
+
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="/post/cleveland_land_bank_activity/">
+
+  
+  
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="og:site_name" content="Daniel Kuhlmann, PhD">
+  <meta property="og:url" content="/post/cleveland_land_bank_activity/">
+  <meta property="og:title" content="Land Bank Activity Charts | Daniel Kuhlmann, PhD">
+  <meta property="og:description" content="This is a simple example of how I created summary graphs of demolition activity in Cleveland.
+First, prepare the data.
+marker &lt;- read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/2018-cleveland-re-survey.csv&quot;) %&gt;% mutate(pid = as.character(Parcel.ID), marker = as.factor(&quot;Yes&quot;)) %&gt;% select(pid, marker)cleveland.lb &lt;- read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/city demos.csv&quot;) %&gt;% bind_rows(read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/land bank demos.csv&quot;)) %&gt;% mutate(pid = gsub(&quot;-&quot;, &quot;&quot;, Parcel.Number)) %&gt;% left_join(marker, by = &quot;pid&quot;) %&gt;% mutate(cclb.demo = ymd(Cuyahoga.Land.Bank.Demo.Date), cclb.demo.year = year(cclb."><meta property="og:image" content="/img/icon-192.png">
+  <meta property="og:locale" content="en-us">
+  
+  
+  
+  
+
+  
+
+
+  
+
+
+
+
+
+  <title>Land Bank Activity Charts | Daniel Kuhlmann, PhD</title>
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-target="#TableOfContents" data-offset="71" >
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" role="textbox" spellcheck="false" type="search">
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+<nav class="navbar navbar-light fixed-top navbar-expand-lg py-0" id="navbar-main">
+  <div class="container">
+
+    
+      <a class="navbar-brand" href="/">Daniel Kuhlmann, PhD</a>
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse"
+              data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+    
+    <div class="collapse navbar-collapse" id="navbar">
+
+      
+      
+      <ul class="navbar-nav mr-auto">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+            
+          
+        
+
+        
+        
+        
+        
+        
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="https://www.design.iastate.edu/secure/INTRANET2/FILES/dok/dok-short.pdf" target="_blank" rel="noopener"><span>CV</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#publications"><span>Publications</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+      </ul>
+      <ul class="navbar-nav ml-auto">
+      
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-search" href="#"><i class="fas fa-search" aria-hidden="true"></i></a>
+        </li>
+        
+
+        
+
+        
+        <li class="nav-item">
+          <a class="nav-link js-dark-toggle" href="#"><i class="fas fa-moon" aria-hidden="true"></i></a>
+        </li>
+        
+
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+  <article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1 itemprop="name">Land Bank Activity Charts</h1>
+
+  
+
+  
+    
+
+
+
+<meta content="" itemprop="datePublished">
+<meta content="" itemprop="dateModified">
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    <time>Jan 1, 0001</time>
+  </span>
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <span class="article-categories">
+    <i class="fas fa-folder"></i>
+    <a href="/categories/r/">R</a></span>
+  
+
+  
+    
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Land%20Bank%20Activity%20Charts&amp;url=%2fpost%2fcleveland_land_bank_activity%2f"
+         target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=%2fpost%2fcleveland_land_bank_activity%2f"
+         target="_blank" rel="noopener">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=%2fpost%2fcleveland_land_bank_activity%2f&amp;title=Land%20Bank%20Activity%20Charts"
+         target="_blank" rel="noopener">
+        <i class="fab fa-linkedin-in"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=%2fpost%2fcleveland_land_bank_activity%2f&amp;title=Land%20Bank%20Activity%20Charts"
+         target="_blank" rel="noopener">
+        <i class="fab fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Land%20Bank%20Activity%20Charts&amp;body=%2fpost%2fcleveland_land_bank_activity%2f">
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+
+<p>This is a simple example of how I created summary graphs of demolition activity in Cleveland.</p>
+<p>First, prepare the data.</p>
+<pre class="r"><code>marker &lt;- read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/2018-cleveland-re-survey.csv&quot;) %&gt;% 
+  mutate(pid = as.character(Parcel.ID), 
+         marker = as.factor(&quot;Yes&quot;)) %&gt;% 
+  select(pid, marker)
+
+cleveland.lb &lt;- read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/city demos.csv&quot;) %&gt;% 
+  bind_rows(read.csv(&quot;//iastate.edu/lss/research/dok-lab/Cleveland Land Bank/data/r/Cleveland/data/raw data/cleveland lb/land bank demos.csv&quot;)) %&gt;% 
+            mutate(pid = gsub(&quot;-&quot;, &quot;&quot;, Parcel.Number)) %&gt;% 
+  left_join(marker, by = &quot;pid&quot;) %&gt;% 
+  mutate(cclb.demo = ymd(Cuyahoga.Land.Bank.Demo.Date), 
+         cclb.demo.year = year(cclb.demo),
+         city.demo = ymd(City.Demo.Date), 
+         city.demo.year = year(city.demo), 
+         demo.year = if_else(!is.na(cclb.demo.year), cclb.demo.year,
+                             if_else(!is.na(city.demo.year), city.demo.year, NA_real_)),
+         demo.by = as.factor(if_else(!is.na(cclb.demo.year), &quot;County Land Bank&quot;,
+                             if_else(!is.na(city.demo.year), &quot;City&quot;, NA_character_))))
+
+graph &lt;- cleveland.lb %&gt;% 
+  filter(!is.na(demo.year), !is.na(marker), demo.year &gt; 2001) %&gt;% 
+  group_by(demo.year, demo.by) %&gt;% 
+  summarise( n = n()) %&gt;% 
+  mutate(series = &quot;all&quot;) %&gt;% 
+  select(demo.year, demo.by, series, n) %&gt;% 
+  bind_rows((cleveland.lb %&gt;% 
+      filter(!is.na(demo.year), is.na(marker)) %&gt;% 
+      group_by(demo.year, demo.by) %&gt;% 
+      summarise( n = n()) %&gt;% 
+      mutate(series = &quot;east&quot;)) %&gt;% 
+        select(demo.year, series, demo.by, n)) %&gt;% 
+  mutate(demos.location = str_c(series, &quot;, &quot;, demo.by)) %&gt;% 
+  group_by(series, demo.by) %&gt;% 
+  mutate(total_demos = cumsum(n))
+
+all.graph &lt;- graph %&gt;%
+  filter(series == &quot;all&quot;)
+
+east.graph &lt;- graph %&gt;%
+  filter(series == &quot;east&quot;)</code></pre>
+<pre class="r"><code>all.annual &lt;- all.graph %&gt;% 
+  ggplot(aes(x = demo.year, y = n, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &quot;Year&quot;, 
+       y = &quot;Annual Demos&quot;, 
+       linetype = &quot;&quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 100)) + 
+  theme_bw() +
+  theme(legend.position = &#39;&#39;, 
+        text = element_text(family = &quot;serif&quot;)) 
+  
+
+all.cumulative &lt;- all.graph %&gt;% 
+  ggplot(aes(x = demo.year, y = total_demos, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &quot;&quot;, 
+       y = &quot;Cumulative Demos \n(Since 2004)&quot;, 
+       linetype = &quot;&quot;, 
+        title = &quot;All Cleveland Neighborhoods&quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 5000), breaks = seq(0, 5000, by = 500)) + 
+  geom_text(aes(x = 2010, y = 3500, label = &quot;City&quot;, family = &quot;serif&quot;)) +
+  geom_text(aes(x = 2016.5, y = 1500, label = &quot;Land Bank&quot;, family = &quot;serif&quot;)) +
+  theme_bw() +
+  theme(legend.position = &#39;&#39;, 
+        text = element_text(family = &quot;serif&quot;)) 
+
+east.annual &lt;- east.graph %&gt;% 
+  ggplot(aes(x = demo.year, y = n, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &quot;Year&quot;, 
+       y = &quot;&quot;, 
+       linetype = &quot;&quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(0, 900), breaks = seq(0, 900, by = 100)) + 
+  theme_bw() +
+  theme(legend.position = &quot;&quot;, 
+        text = element_text(family = &quot;serif&quot;))
+
+east.cumulative &lt;- east.graph %&gt;% 
+  ggplot(aes(x = demo.year, y = total_demos, group = demo.by, linetype = demo.by)) +
+  geom_line() +
+  labs(x = &quot;&quot;, 
+       y = &quot;&quot;, 
+       linetype = &quot;&quot;, 
+        title = &quot;Resurveyed Neighborhoods&quot;) +
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(limits = c(0, 5000), breaks = seq(0, 5000, by = 500)) + 
+  theme_bw() +
+  theme(legend.position = &#39;&#39;, 
+        text = element_text(family = &quot;serif&quot;))
+
+# jpeg(file=&quot;plots/demo activity.jpeg&quot;, width = 11, height = 8.5, units = &#39;in&#39;, res = 850)
+cowplot::plot_grid(all.cumulative, east.cumulative, all.annual, east.annual, 
+                   nrow = 2, 
+                   ncol = 2,
+                   rel_heights = c(.6, .4), 
+                   align = &quot;v&quot;)</code></pre>
+<p><img src="/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code># dev.off()</code></pre>
+<p>To create the cumulative chart, I had to use the mutate, cumsum command.</p>
+<pre class="r"><code>by.hood &lt;- cleveland.lb %&gt;% 
+  mutate(hood = Neighborhood..imp..2012.) %&gt;%
+  filter(!is.na(demo.year), demo.year &gt; 2001, 
+         (hood == &quot;Glenville&quot; |
+          hood == &quot;Broadway-Slavic Village&quot; |
+          hood == &quot;Union-Miles&quot; |
+          hood == &quot;Mount Pleasant&quot; |
+          hood == &quot;Hough&quot; |
+          hood == &quot;Kinsman&quot; |
+          hood == &quot;St.Clair-Superior&quot; |
+          hood == &quot;Fairfax&quot; |
+          hood == &quot;Collinwood-Nottingham&quot; |
+          hood == &quot;Buckeye-Shaker Square&quot; |
+          hood == &quot;Buckeye-Woodhill&quot; |
+          hood == &quot;Stockyards&quot; |
+          hood == &quot;Clark-Fulton&quot;)) %&gt;% 
+  group_by(demo.year, hood) %&gt;% 
+  summarise(n = n()) %&gt;% 
+  select(demo.year, hood, n) %&gt;% 
+  group_by(hood) %&gt;% 
+  mutate(total = cumsum(n))</code></pre>
+<p>Now I can start creating the charts.</p>
+<p>This creates the cumulative demolitions by neighbrohoods gifs.</p>
+<pre class="r"><code>by.hood %&gt;% 
+  ggplot(aes(demo.year, total, group = hood)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = total), linetype = 2, colour = &#39;grey&#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = hood), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &#39;off&#39;) + 
+  labs(title = &quot;Total Number of Demolitions in Select \nCleveland Neighborhoods: 2004-2018&quot;,
+       y = &quot;Total Demolitions&quot;,
+       x = &quot;Year&quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 2400, by = 200)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 120, 5.5, 5.5), 
+        legend.position = &quot;none&quot;)</code></pre>
+<p><img src="/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-6-1.gif" /><!-- --></p>
+<pre class="r"><code># anim_save(&quot;gifs/cumulative demos by hood.gif&quot;)</code></pre>
+<p>This version is the same as above, but uses demolitions per year as opposed to total, cumulative demos.</p>
+<pre class="r"><code>by.hood %&gt;% 
+  ggplot(aes(demo.year, n, group = hood)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 2, colour = &#39;grey&#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = hood), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &#39;off&#39;) + 
+  labs(title = &quot;Demolition Activity in Select \nCleveland Neighborhoods: 2004-2018&quot;,
+       y = &quot;Number of Demolitions&quot;,
+       x = &quot;Year&quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 400, by = 25)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 120, 5.5, 5.5), 
+        legend.position = &quot;none&quot;)</code></pre>
+<p><img src="/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-7-1.gif" /><!-- --></p>
+<p>This creates an animated version of the demolition activity per year in all of Cleveland.</p>
+<pre class="r"><code>all.graph %&gt;% 
+  ggplot(aes(demo.year, n, group = demos.location, linetype = demos.location)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 3, colour = &#39;grey&#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = demo.by), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &#39;off&#39;) + 
+  labs(title = &quot;Demolition Activity in Cleveland, OH: 2004-2018&quot;,
+       y = &quot;Number of Demolitions&quot;,
+       x = &quot;Year&quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 950, by = 50)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 80, 5.5, 5.5), 
+        legend.position = &quot;none&quot;)</code></pre>
+<p><img src="/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-8-1.gif" /><!-- --></p>
+<pre class="r"><code>#  anim_save(&quot;gifs/all demos.gif&quot;)</code></pre>
+<p>And this one creates the animated graph for just the eastside.</p>
+<pre class="r"><code>east.graph %&gt;% 
+  ggplot(aes(demo.year, n, group = demos.location, linetype = demos.location)) + 
+  geom_line() + 
+  geom_segment(aes(xend = 2019, yend = n), linetype = 2, colour = &#39;grey&#39;) + 
+  geom_point(size = 2) + 
+  geom_text(aes(x = 2019, label = demo.by), hjust = 0) + 
+  transition_reveal(demo.year) + 
+  coord_cartesian(clip = &#39;off&#39;) + 
+  labs(title = &quot;Demolition Activity in Select \nEastside Cleveland Neighborhoods: 2004-2018&quot;,
+       y = &quot;Number of Demolitions&quot;,
+       x = &quot;Year&quot;) + 
+  scale_x_continuous(breaks = seq(2004, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(0, 500, by = 50)) +
+  theme_minimal() +
+  theme(plot.margin = margin(5.5, 80, 5.5, 5.5), 
+        legend.position = &quot;none&quot;)</code></pre>
+<p><img src="/post/cleveland_land_bank_activity_files/figure-html/unnamed-chunk-9-1.gif" /><!-- --></p>
+<pre class="r"><code>#  anim_save(&quot;gifs/east demos.gif&quot;)</code></pre>
+
+    </div>
+
+    
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tags/r-markdown/">R Markdown</a>
+  
+  <a class="badge badge-light" href="/tags/plot/">plot</a>
+  
+  <a class="badge badge-light" href="/tags/regression/">regression</a>
+  
+</div>
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+  
+  
+    
+  
+  
+  <div class="media author-card" itemscope itemtype="http://schema.org/Person">
+    
+      
+      <img class="portrait mr-3" src="/authors/admin/avatar_hudbc569319c6a63bb840b74fbbc19b0d6_3124852_250x250_fill_q90_lanczos_center.jpg" itemprop="image" alt="Avatar">
+    
+
+    <div class="media-body">
+      <h5 class="card-title" itemprop="name"><a href="/">Daniel Kuhlmann</a></h5>
+      <h6 class="card-subtitle">Assistant Professor of Community and Regional Planning</h6>
+      <p class="card-text" itemprop="description">My research interests include housing policy, real estate, and local public finance.</p>
+      <ul class="network-icon" aria-hidden="true">
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="/#contact" >
+              <i class="fas fa-envelope"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://www.linkedin.com/in/danielkuhlmann/" target="_blank" rel="noopener">
+              <i class="fab fa-linkedin"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://scholar.google.com/citations?user=Rqx3ZF0AAAAJ&amp;hl=en" target="_blank" rel="noopener">
+              <i class="ai ai-google-scholar"></i>
+            </a>
+          </li>
+        
+          
+          
+          
+            
+          
+          
+          
+          
+          
+            
+          
+          <li>
+            <a itemprop="sameAs" href="https://www.design.iastate.edu/faculty/dok/" target="_blank" rel="noopener">
+              <i class="fas fa-graduation-cap"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+
+
+      
+      
+    
+
+    
+
+    
+
+
+  </div>
+</article>
+
+      
+
+    
+    
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js" integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+        
+      
+
+      
+      
+    
+
+    
+    
+
+    
+    
+    
+
+    
+    
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script>
+      const search_index_filename = "/index.json";
+      const i18n = {
+        'placeholder': "Search...",
+        'results': "results found",
+        'no_results': "No results found"
+      };
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'talk' : "Talks"
+        };
+    </script>
+    
+
+    
+    
+
+    
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    <script src="/js/academic.min.9ef1b53ee2bde6c7f33b150c6ba4d452.js"></script>
+
+    
+
+
+
+
+
+
+  
+  <div class="container">
+    <footer class="site-footer">
+  
+  <p class="powered-by">
+    <a href="/privacy/">Privacy Policy</a>
+  </p>
+  
+
+  <p class="powered-by">
+    
+
+    Powered by the
+    <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+    <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+    
+    <span class="float-right" aria-hidden="true">
+      <a href="#" id="back_to_top">
+        <span class="button_icon">
+          <i class="fas fa-chevron-up fa-2x"></i>
+        </span>
+      </a>
+    </span>
+    
+  </p>
+</footer>
+
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
